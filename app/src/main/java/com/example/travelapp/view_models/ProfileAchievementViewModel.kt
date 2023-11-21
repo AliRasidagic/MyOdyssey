@@ -23,7 +23,6 @@ class ProfileAchievementViewModel(
         private set
 
     var username: String? = null
-        private set
 
     var countriesList: List<String> = emptyList()
         private set

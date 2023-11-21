@@ -20,7 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,6 +45,9 @@ import com.maxkeppeker.sheets.core.models.base.rememberSheetState
 import com.maxkeppeler.sheets.calendar.CalendarDialog
 import com.maxkeppeler.sheets.calendar.models.CalendarConfig
 import com.maxkeppeler.sheets.calendar.models.CalendarSelection
+import com.maxkeppeler.sheets.calendar.models.CalendarTimeline
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -766,7 +769,7 @@ fun StartDatePicker(
         },
         config = CalendarConfig(
             monthSelection = true,
-            yearSelection = true
+            yearSelection = true,
         )
     )
     Button(
@@ -795,7 +798,8 @@ fun EndDatePicker(
         },
         config = CalendarConfig(
             monthSelection = true,
-            yearSelection = true
+            yearSelection = true,
+            disabledTimeline = CalendarTimeline.PAST
         )
     )
     Button(

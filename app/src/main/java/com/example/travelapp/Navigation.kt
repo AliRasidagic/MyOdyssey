@@ -6,21 +6,24 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.BottomAppBar
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.TopAppBar
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PersonPin
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -131,6 +134,7 @@ fun TravelApp() {
             }
             composable(route = Navigation.Trips.name) {
                 Trips(
+                    navController = navController,
                     viewModel = addTripViewModel
                 )
             }
@@ -140,7 +144,9 @@ fun TravelApp() {
                 )
             }
             composable(route = Navigation.EditProfile.name) {
-                EditProfile()
+                EditProfile(
+                    viewModel = profileAchievementViewModel
+                )
             }
             composable(route = Navigation.AddTrip.name) {
                 AddTrip(
@@ -169,7 +175,7 @@ fun CustomBottomAppBar(
     val isHovered by interactionSource.collectIsHoveredAsState()
 
     BottomAppBar(
-        backgroundColor = Color.Black,
+        containerColor = Color.Black,
         contentColor = Color.White,
         modifier = Modifier
             .height(60.dp),
@@ -178,21 +184,20 @@ fun CustomBottomAppBar(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(4.dp)
             ) {
                 IconButton(
                     onClick = { navController.navigate(Navigation.Trips.name) },
                     modifier = Modifier
                         .hoverable(interactionSource = interactionSource)
                         .weight(1f)
-                    ) {
+                        .fillMaxHeight()
+                ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Place,
                             contentDescription = null,
-                            modifier = Modifier.weight(0.6f),
                             tint = if (currentScreen == Navigation.Trips) {
                                 Color.Blue
                             } else {
@@ -206,13 +211,14 @@ fun CustomBottomAppBar(
                             } else {
                                 Color.White
                             },
-                            modifier = Modifier.weight(0.4f)
                         )
                     }
                 }
                 IconButton(
                     onClick = { navController.navigate(Navigation.Profile.name) },
-                    modifier = Modifier.weight(1.5f)
+                    modifier = Modifier
+                        .weight(1.5f)
+                        .fillMaxHeight()
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -220,7 +226,6 @@ fun CustomBottomAppBar(
                         Icon(
                             imageVector = Icons.Default.PersonPin,
                             contentDescription = null,
-                            modifier = Modifier.weight(0.6f),
                             tint = if (currentScreen == Navigation.Profile) {
                                 Color.Blue
                             } else {
@@ -234,7 +239,6 @@ fun CustomBottomAppBar(
                             } else {
                                 Color.White
                             },
-                            modifier = Modifier.weight(0.4f)
                         )
                     }
                 }
@@ -242,6 +246,7 @@ fun CustomBottomAppBar(
                     onClick = { navController.navigate(Navigation.Achievements.name) },
                     modifier = Modifier
                         .weight(1f)
+                        .fillMaxHeight()
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -249,7 +254,6 @@ fun CustomBottomAppBar(
                         Icon(
                             imageVector = Icons.Filled.DoneAll,
                             contentDescription = null,
-                            modifier = Modifier.weight(0.6f),
                             tint = if (currentScreen == Navigation.Achievements) {
                                 Color.Blue
                             } else {
@@ -257,13 +261,12 @@ fun CustomBottomAppBar(
                             }
                         )
                         Text(
-                            text = "Achievements",
+                            text = "Trophies",
                             color = if (currentScreen == Navigation.Achievements) {
                                 Color.Blue
                             } else {
                                 Color.White
                             },
-                            modifier = Modifier.weight(0.4f)
                         )
                     }
                 }
@@ -272,6 +275,7 @@ fun CustomBottomAppBar(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTopAppBar(
     navController: NavController,
@@ -279,45 +283,48 @@ fun CustomTopAppBar(
     title: Navigation,
     viewModel: AddTripViewModel
 ) {
-
     TopAppBar(
-        backgroundColor = Color.Black
-    ) {
-        Text(
-            text = title.toString(),
-            color = Color.White,
-            fontSize = 25.sp,
-            modifier = Modifier
-                .padding(start = 16.dp)
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        if (currentScreen == Navigation.Trips) {
-            IconButton(
-                onClick = { viewModel.onShowChange(true) },
-                modifier = Modifier.padding(top = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = null,
-                    tint = Color.White
-                )
-            }
-        } else if (currentScreen == Navigation.Profile){
-            IconButton(
-                onClick = { navController.navigate(Navigation.EditProfile.name) },
-                modifier = Modifier.padding(top = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    contentDescription = null,
-                    tint = Color.White
-                )
-            }
-        } else {
+        title = {
             Text(
-                text = "107/213",
-                color = Color.White
+                text = title.toString(),
+                color = Color.White,
+                fontSize = 25.sp,
+                modifier = Modifier
+                    .padding(start = 8.dp)
             )
-        }
-    }
+        },
+        actions = {
+            if (currentScreen == Navigation.Trips) {
+                IconButton(
+                    onClick = { viewModel.onShowChange(true) },
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                }
+            } else if (currentScreen == Navigation.Profile) {
+                IconButton(
+                    onClick = { navController.navigate(Navigation.EditProfile.name) },
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                }
+            }
+            if (currentScreen != Navigation.Trips && currentScreen != Navigation.Profile) {
+                Text(
+                    text = "107/213",
+                    color = Color.White,
+                    modifier = Modifier.padding(end = 16.dp)
+                )
+            }
+        },
+        colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Black)
+    )
 }

@@ -17,8 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.Text
+import androidx.compose.material3.Card
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,7 +39,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.example.travelapp.Navigation
 import com.example.travelapp.R
 import com.example.travelapp.data.TravelInfo
 import com.example.travelapp.view_models.AddTripViewModel
@@ -48,7 +50,8 @@ import com.example.travelapp.view_models.ProfileAchievementViewModel
 @Composable
 fun Trips(
     modifier: Modifier = Modifier,
-    viewModel: AddTripViewModel
+    viewModel: AddTripViewModel,
+    navController: NavController
 ) {
     val uiState = viewModel.state
     var travelInfoList by remember { mutableStateOf<List<TravelInfo>>(emptyList()) }
@@ -85,7 +88,8 @@ fun Trips(
                         endDate = travelInfo.endDate,
                         mainImage = travelInfo.image,
                         description = travelInfo.info,
-                        backgroundImage = travelInfo.country
+                        backgroundImage = travelInfo.country,
+                        navController = navController
                     )
                 }
             }
@@ -103,93 +107,95 @@ fun TravelCard(
     endDate: String,
     mainImage: String,
     backgroundImage: String,
-    description: String
+    description: String,
+    navController: NavController
 ) {
     Card(
         modifier = Modifier
             .padding(10.dp)
             .height(150.dp)
-            .clip(RoundedCornerShape(8.dp)),
+            .clip(RoundedCornerShape(8.dp))
     ) {
-        Box {
-            Image(
-                painter = painterResource(countryToFlag(backgroundImage)),
-                contentDescription = null,
-                contentScale = ContentScale.FillBounds,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .alpha(0.25f)
-            )
-            Column(
-                modifier = Modifier
-                    .clickable { /* Handle card click here */ }
-                    .padding(8.dp)
-            ) {
-                Row {
+        Box(
+            modifier = Modifier
+                .background(Color.Transparent)
+                .clickable {
+                    navController.navigate(Navigation.TripInfo.name)
+                }
+        ) {
+            Row {
+                Column(
+                    modifier = Modifier
+                        .weight(0.3f)
+                        .background(Color.DarkGray)
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = title,
+                        style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 14.sp),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Image(
+                        painter = painterResource(countryToFlag(backgroundImage)),
+                        contentDescription = "Travel Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .width(100.dp)
+                            .height(60.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+                    Text(
+                        text = country,
+                        style = TextStyle(fontSize = 10.sp),
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                    )
+                    Text(
+                        text = city,
+                        style = TextStyle(fontSize = 10.sp),
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .weight(0.7f)
+                ) {
                     Image(
                         painter = rememberAsyncImagePainter(
                             model = Uri.parse(mainImage)
                         ),
-                        contentDescription = "Travel Image",
-                        contentScale = ContentScale.Crop,
+                        contentDescription = null,
+                        contentScale = ContentScale.FillBounds,
                         modifier = Modifier
-                            .width(80.dp)
-                            .height(80.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                            .fillMaxSize()
+                            .alpha(0.5f)
                     )
-                    Column(
+                    Image(
+                        painter = painterResource(id = R.drawable.africa),
+                        contentDescription = null,
                         modifier = Modifier
-                            .padding(start = 8.dp)
+                            .size(60.dp)
+                            .align(Alignment.TopEnd)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .align(Alignment.BottomEnd)
                     ) {
                         Text(
-                            text = title,
-                            style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp),
-                            modifier = Modifier.fillMaxWidth(),
+                            text = startDate,
+                            style = TextStyle(fontSize = 8.sp),
                         )
                         Text(
-                            text = continent,
-                            style = TextStyle(fontSize = 16.sp),
+                            text = endDate,
+                            style = TextStyle(fontSize = 8.sp),
                             modifier = Modifier
-                                .fillMaxWidth(),
+                                .padding(start = 4.dp),
                         )
-                        Row(
-                            modifier = Modifier
-                                .padding(top = 8.dp)
-                        ) {
-                            Text(
-                                text = country,
-                                style = TextStyle(fontSize = 12.sp),
-                            )
-                            Text(
-                                text = city,
-                                style = TextStyle(fontSize = 12.sp),
-                                modifier = Modifier
-                                    .padding(start = 4.dp),
-                            )
-                        }
-                        Row(
-                            modifier = Modifier
-                                .padding(top = 4.dp)
-                        ) {
-                            Text(
-                                text = startDate,
-                                style = TextStyle(fontSize = 8.sp),
-                            )
-                            Text(
-                                text = endDate,
-                                style = TextStyle(fontSize = 8.sp),
-                                modifier = Modifier
-                                    .padding(start = 4.dp),
-                            )
-                        }
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = description,
-                    style = TextStyle(fontSize = 12.sp),
-                    modifier = Modifier.fillMaxWidth(),
-                )
             }
         }
     }

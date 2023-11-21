@@ -18,20 +18,21 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,7 +62,7 @@ import com.example.travelapp.R
 import com.example.travelapp.view_models.RegistrationLoginViewModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Login(
     viewModel: RegistrationLoginViewModel,
@@ -129,8 +130,8 @@ fun Login(
                 modifier = Modifier
                     .padding(top = 145.dp)
                     .widthIn(300.dp)
-                    .height(60.dp)
-                    .background(color = White, shape = RoundedCornerShape(20.dp)),
+                    .height(60.dp),
+                shape = RoundedCornerShape(20.dp),
                 placeholder = {
                     Text(text = "E-mail")
                 },
@@ -146,7 +147,12 @@ fun Login(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                 singleLine = true,
-                colors = TextFieldDefaults.textFieldColors(focusedIndicatorColor = Color.Transparent)
+                colors = TextFieldDefaults.textFieldColors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    containerColor = White,
+                    textColor = Black
+                )
             )
             TextField(
                 value = uiState.password,
@@ -162,8 +168,8 @@ fun Login(
                 modifier = Modifier
                     .padding(top = 16.dp)
                     .widthIn(300.dp)
-                    .height(60.dp)
-                    .background(color = White, shape = RoundedCornerShape(20.dp)),
+                    .height(60.dp),
+                shape = RoundedCornerShape(20.dp),
                 placeholder = {
                     Text(text = "Password")
                 },
@@ -197,7 +203,12 @@ fun Login(
                     keyboardController?.hide()
                 }),
                 singleLine = true,
-                colors = TextFieldDefaults.textFieldColors(focusedIndicatorColor = Color.Transparent)
+                colors = TextFieldDefaults.textFieldColors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    containerColor = White,
+                    textColor = Black
+                )
             )
             Row(
                 modifier = Modifier
@@ -205,7 +216,6 @@ fun Login(
             ) {
                 Card(
                     modifier = Modifier.background(Black),
-                    elevation = 0.dp,
                     shape = RoundedCornerShape(6.dp),
                     border = BorderStroke(1.5.dp, color = White)
                 ) {
@@ -237,7 +247,6 @@ fun Login(
                     .padding(top = 120.dp)
                     .widthIn(300.dp)
                     .heightIn(60.dp)
-                    .border(1.dp, SolidColor(White), shape = RoundedCornerShape(20.dp))
             ) {
                 Text(
                     text = "Login",
