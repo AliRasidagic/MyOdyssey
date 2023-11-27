@@ -1,13 +1,8 @@
-package com.example.travelapp.pages
+package com.example.travelapp.ui.pages
 
-import android.content.Intent
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,13 +16,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,30 +30,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewModelScope
+import androidx.core.net.toUri
 import coil.compose.rememberAsyncImagePainter
 import com.example.travelapp.R
-import com.example.travelapp.view_models.ProfileAchievementViewModel
-import kotlinx.coroutines.launch
+import com.example.travelapp.data.view_models.ProfileViewModel
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun Profile(
-    viewModel: ProfileAchievementViewModel,
+    viewModel: ProfileViewModel,
     modifier: Modifier = Modifier
 ) {
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    val uiState = viewModel.state
 
-    val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri -> selectedImageUri = uri }
-    )
+    var getImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    LaunchedEffect(getImageUri) {
+        getImageUri = viewModel.getImage().toUri()
+    }
 
     Box(
         modifier = Modifier
@@ -74,28 +66,16 @@ fun Profile(
         ) {
             item {
                 Image(
-                    painter = if (selectedImageUri == null) painterResource(R.drawable.empty) else rememberAsyncImagePainter(
-                        selectedImageUri
-                    ),
+                    painter = if (getImageUri != null) rememberAsyncImagePainter(getImageUri!!)
+                    else painterResource(id = R.drawable.empty),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .clickable {
-                            singlePhotoPickerLauncher.launch(
-                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                            )
-                        }
                 )
-
-                selectedImageUri?.let {
-                    LocalContext.current.contentResolver.takePersistableUriPermission(
-                        it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-
                 Text(
-                    text = viewModel.username ?: "",
+                    text = uiState.username ?: "",
                     style = TextStyle(
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
@@ -104,7 +84,7 @@ fun Profile(
                     modifier = Modifier.padding(top = 12.dp)
                 )
                 Text(
-                    text = determineUserLevel(viewModel.trips),
+                    text = determineUserLevel(uiState.trips),
                     style = TextStyle(
                         fontSize = 16.sp,
                         color = Color.Gray
@@ -116,8 +96,9 @@ fun Profile(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(15.dp)
+                        .padding(top = 15.dp)
                 ) {
-                    viewModel.countriesList.forEach { country ->
+                    uiState.countriesList.forEach { country ->
                         FlagPicker(country)
                     }
                 }
@@ -125,7 +106,7 @@ fun Profile(
                     horizontalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 30.dp)
+                        .padding(top = 60.dp)
                 ) {
                     Box(
                         modifier = Modifier
@@ -139,18 +120,18 @@ fun Profile(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = viewModel.continents.toString(),
+                                text = uiState.continents.toString(),
                                 style = TextStyle(
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
                                 )
                             )
-                            Divider(
-                                color = Color.White,
+                            HorizontalDivider(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 4.dp)
+                                    .padding(vertical = 4.dp),
+                                color = Color.White
                             )
                             Text(
                                 text = "Continents",
@@ -174,18 +155,18 @@ fun Profile(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = viewModel.countries.toString(),
+                                text = uiState.countries.toString(),
                                 style = TextStyle(
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
                                 )
                             )
-                            Divider(
-                                color = Color.White,
+                            HorizontalDivider(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 4.dp)
+                                    .padding(vertical = 4.dp),
+                                color = Color.White
                             )
                             Text(
                                 text = "Countries",
@@ -215,18 +196,18 @@ fun Profile(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = viewModel.cities.toString(),
+                                text = uiState.cities.toString(),
                                 style = TextStyle(
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
                                 )
                             )
-                            Divider(
-                                color = Color.White,
+                            HorizontalDivider(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 4.dp)
+                                    .padding(vertical = 4.dp),
+                                color = Color.White
                             )
                             Text(
                                 text = "Cities",
@@ -250,18 +231,18 @@ fun Profile(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = viewModel.trips.toString(),
+                                text = uiState.trips.toString(),
                                 style = TextStyle(
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
                                 )
                             )
-                            Divider(
-                                color = Color.White,
+                            HorizontalDivider(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 4.dp)
+                                    .padding(vertical = 4.dp),
+                                color = Color.White
                             )
                             Text(
                                 text = "Trips",
@@ -273,17 +254,6 @@ fun Profile(
                         }
                     }
                 }
-                Text(
-                    text = "See Your Map!",
-                    style = TextStyle(
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    ),
-                    modifier = Modifier
-                        .padding(top = 30.dp)
-                        .clickable { }
-                )
             }
         }
     }

@@ -1,13 +1,13 @@
-package com.example.travelapp.view_models
+package com.example.travelapp.data.view_models
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.travelapp.data.TravelInfo
-import com.example.travelapp.graph.Graph
-import com.example.travelapp.repository.OfflineRepository
+import com.example.travelapp.data.database.TravelInfo
+import com.example.travelapp.data.graph.Graph
+import com.example.travelapp.data.repository.OfflineRepository
 import kotlinx.coroutines.launch
 
 class AddTripViewModel(
@@ -15,15 +15,6 @@ class AddTripViewModel(
 ) : ViewModel() {
 
     var state by mutableStateOf(AddTripUiState())
-        private set
-
-    fun onStartDateChange(newDate: String){
-        state = state.copy(startDate = newDate)
-    }
-
-    fun onEndDateChange(newDate: String){
-        state = state.copy(endDate = newDate)
-    }
 
     fun onContinentChange(newContinent: String){
         state = state.copy(selectedContinent = newContinent)
@@ -31,10 +22,6 @@ class AddTripViewModel(
 
     fun onCountryChange(newCountry: String){
         state = state.copy(selectedCountry = newCountry)
-    }
-
-    fun onShowChange(newShow: Boolean){
-        state = state.copy(showDialog = newShow)
     }
 
     fun addTrip(travelInfo: TravelInfo) {
@@ -49,9 +36,8 @@ class AddTripViewModel(
 }
 
 data class AddTripUiState(
-    val selectedContinent: String = "Continent",
-    val selectedCountry: String = "Country",
-    val startDate: String = "Start Date",
-    val endDate: String = "End Date",
-    var showDialog: Boolean = false
+    var selectedContinent: String = "Continent",
+    var selectedCountry: String = "Country",
+    var startDate: String = "Start Date",
+    var endDate: String = "End Date",
 )

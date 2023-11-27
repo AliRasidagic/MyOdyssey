@@ -1,4 +1,4 @@
-package com.example.travelapp.pages
+package com.example.travelapp.ui.pages
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -21,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -42,12 +41,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.travelapp.R
-import com.example.travelapp.view_models.ProfileAchievementViewModel
+import com.example.travelapp.data.view_models.AchievementViewModel
 
 @Composable
 fun Achievements(
     modifier: Modifier = Modifier,
-    viewModel: ProfileAchievementViewModel
+    viewModel: AchievementViewModel
 ) {
     Box(
         modifier = Modifier
@@ -76,7 +75,6 @@ fun Achievements(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AchievementCard(
     name: String,
@@ -158,21 +156,48 @@ fun AchievementCard(
 }
 
 @Composable
-fun achievementList(viewModel: ProfileAchievementViewModel): List<Achievement> {
+fun achievementList(viewModel: AchievementViewModel): List<Achievement> {
+    val uiState = viewModel.state
+
     return listOf(
-        Achievement("Beginner", "Travel more than 5 trips", viewModel.trips > 5, R.drawable.gigachad),
-        Achievement("Intermediate", "Travel more than 10 trips", viewModel.trips > 10, R.drawable.gigachad),
-        Achievement("Professional", "Travel more than 15 trips", viewModel.trips > 15, R.drawable.gigachad),
-        Achievement("Colonial", "Visit more than 5 countries", viewModel.countries > 5, R.drawable.gigachad),
-        Achievement("Mr. WorldWide", "Visit more than 5 continents", viewModel.continents > 5, R.drawable.gigachad),
-        Achievement("Damn", "Travel more than 20 trips", viewModel.trips > 20, R.drawable.gigachad),
-        Achievement("Hitchhiker", "Travel more than 25 trips", viewModel.trips > 25, R.drawable.gigachad),
-        Achievement("Europe", "Travel to all the countries in Europe", viewModel.trips > 25, R.drawable.gigachad),
-        Achievement("Asia", "Travel to all the countries in Asia", viewModel.trips > 25, R.drawable.gigachad),
-        Achievement("Africa", "Travel to all the countries in Africa", viewModel.trips > 25, R.drawable.gigachad),
-        Achievement("North America", "Travel to all the countries in North America", viewModel.trips > 25, R.drawable.gigachad),
-        Achievement("South America", "Travel to all the countries in South America", viewModel.trips > 25, R.drawable.gigachad),
-        Achievement("Oceania", "Travel to all the countries in Oceania", viewModel.trips > 25, R.drawable.gigachad)
+        Achievement("5 Trips", "Complete 5 trips", uiState.trips > 4, R.drawable.gigachad),
+        Achievement("10 Trips", "Complete 10 trips", uiState.trips > 9, R.drawable.gigachad),
+        Achievement("20 Trips", "Complete 20 trips", uiState.trips > 19, R.drawable.gigachad),
+        Achievement("50 Trips", "Complete 50 trips", uiState.trips > 49, R.drawable.gigachad),
+        Achievement("100 Trips", "Complete 100 trips", uiState.trips > 99, R.drawable.gigachad),
+        Achievement("200 Trips", "Complete 200 trips", uiState.trips > 199, R.drawable.gigachad),
+        Achievement("500 Trips", "Complete 500 trips", uiState.trips > 499, R.drawable.gigachad),
+
+        Achievement("5 Cities", "Complete 5 cities", uiState.cities > 4, R.drawable.gigachad),
+        Achievement("10 Cities", "Complete 10 cities", uiState.cities > 9, R.drawable.gigachad),
+        Achievement("20 Cities", "Complete 20 cities", uiState.cities > 19, R.drawable.gigachad),
+        Achievement("50 Cities", "Complete 50 cities", uiState.cities > 49, R.drawable.gigachad),
+        Achievement("100 Cities", "Complete 100 cities", uiState.cities > 99, R.drawable.gigachad),
+        Achievement("200 Cities", "Complete 200 cities", uiState.cities > 199, R.drawable.gigachad),
+        Achievement("500 Cities", "Complete 500 cities", uiState.cities > 499, R.drawable.gigachad),
+
+        Achievement("5 Countries", "Visit 5 countries", uiState.countries > 4, R.drawable.trips5),
+        Achievement("10 Countries", "Visit 10 countries", uiState.countries > 9, R.drawable.gigachad),
+        Achievement("20 Countries", "Visit 20 countries", uiState.countries > 19, R.drawable.gigachad),
+        Achievement("50 Countries", "Visit 50 countries", uiState.countries > 49, R.drawable.gigachad),
+        Achievement("100 Countries", "Visit 100 countries", uiState.countries > 99, R.drawable.gigachad),
+        Achievement("All Countries", "Visit All countries", uiState.countries > 205, R.drawable.gigachad),
+
+        Achievement("3 Continents", "Visit 3 continents", uiState.continents > 2, R.drawable.gigachad),
+        Achievement("All Continents", "Visit all continents", uiState.continents > 5, R.drawable.gigachad),
+
+        Achievement("Europe", "Travel to all the countries in Europe", uiState.trips > 25, R.drawable.gigachad),
+        Achievement("Asia", "Travel to all the countries in Asia", uiState.trips > 25, R.drawable.gigachad),
+        Achievement("Africa", "Travel to all the countries in Africa", uiState.trips > 25, R.drawable.gigachad),
+        Achievement("North America", "Travel to all the countries in North America", uiState.trips > 25, R.drawable.gigachad),
+        Achievement("South America", "Travel to all the countries in South America", uiState.trips > 25, R.drawable.gigachad),
+        Achievement("Oceania", "Travel to all the countries in Oceania", uiState.trips > 25, R.drawable.gigachad),
+
+        Achievement("Tour de France", "Have 5 trips in France", uiState.trips > 25, R.drawable.gigachad),
+        Achievement("USSR", "Visit all countries of the former Soviet Union", uiState.trips > 25, R.drawable.gigachad),
+        Achievement("Polar Bears", "Visit Greenland", uiState.trips > 25, R.drawable.gigachad),
+        Achievement("Peacemaker", "Visit North and South Korea", uiState.trips > 25, R.drawable.gigachad),
+        Achievement("Yugoslavia", "Visit all EX-YU countries", uiState.trips > 25, R.drawable.gigachad)
     )
 }
 

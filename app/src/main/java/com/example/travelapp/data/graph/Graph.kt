@@ -1,11 +1,11 @@
-package com.example.travelapp.graph
+package com.example.travelapp.data.graph
 
 import android.content.Context
-import com.example.travelapp.data.AppDatabase
-import com.example.travelapp.repository.OfflineRepository
+import com.example.travelapp.data.database.AppDatabase
+import com.example.travelapp.data.repository.OfflineRepository
 
 object Graph {
-    lateinit var database:AppDatabase
+    lateinit var database: AppDatabase
         private set
 
     val repository by lazy {

@@ -1,8 +1,7 @@
-package com.example.travelapp.repository
+package com.example.travelapp.data.repository
 
-import androidx.room.Query
-import com.example.travelapp.data.LoginInfo
-import com.example.travelapp.data.TravelInfo
+import com.example.travelapp.data.database.LoginInfo
+import com.example.travelapp.data.database.TravelInfo
 
 interface TravelAppRepository {
 
@@ -18,13 +17,20 @@ interface TravelAppRepository {
 
     suspend fun getUsername(): String
 
-    fun getImage(): String
+    suspend fun getPassword(): String
+
+    suspend fun getImage(): String
 
     suspend fun getTrips(): List<TravelInfo>
 
     suspend fun getCountries(): List<String>
 
     suspend fun insertImage(image: String)
+
+    suspend fun updateUsername(username: String)
+
+    suspend fun updatePassword(password: String)
+
 
     suspend fun insertUser(loginInfo: LoginInfo)
 

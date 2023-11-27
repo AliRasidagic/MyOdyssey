@@ -1,34 +1,29 @@
-package com.example.travelapp
+package com.example.travelapp.ui.navigation
 
-import androidx.compose.foundation.hoverable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PersonPin
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,17 +37,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.travelapp.pages.Achievements
-import com.example.travelapp.pages.AddTrip
-import com.example.travelapp.pages.EditProfile
-import com.example.travelapp.pages.Login
-import com.example.travelapp.pages.Profile
-import com.example.travelapp.pages.Registration
-import com.example.travelapp.pages.TripInfo
-import com.example.travelapp.pages.Trips
-import com.example.travelapp.view_models.AddTripViewModel
-import com.example.travelapp.view_models.ProfileAchievementViewModel
-import com.example.travelapp.view_models.RegistrationLoginViewModel
+import com.example.travelapp.ui.pages.Achievements
+import com.example.travelapp.ui.pages.AddTrip
+import com.example.travelapp.ui.pages.EditProfile
+import com.example.travelapp.ui.pages.Login
+import com.example.travelapp.ui.pages.Profile
+import com.example.travelapp.ui.pages.Registration
+import com.example.travelapp.ui.pages.TripInfo
+import com.example.travelapp.ui.pages.Trips
+import com.example.travelapp.data.view_models.AchievementViewModel
+import com.example.travelapp.data.view_models.AddTripViewModel
+import com.example.travelapp.data.view_models.ProfileViewModel
+import com.example.travelapp.data.view_models.RegistrationLoginViewModel
 
 enum class Navigation {
     Registration,
@@ -65,8 +61,6 @@ enum class Navigation {
     AddTrip
 }
 
-//solve registration login start dest
-
 @Composable
 fun TravelApp() {
     val navController = rememberNavController()
@@ -75,29 +69,20 @@ fun TravelApp() {
         backStackEntry?.destination?.route ?: Navigation.Profile.name
     )
 
-    val registrationLoginRemember = viewModel(modelClass = RegistrationLoginViewModel::class.java)
-    val registrationLoginViewModel = remember { registrationLoginRemember }
-
-    val profileAchievementViewModel = viewModel(modelClass = ProfileAchievementViewModel::class.java)
-
+    val registrationLoginViewModel = viewModel(modelClass = RegistrationLoginViewModel::class.java)
+    val profileViewModel = viewModel(modelClass = ProfileViewModel::class.java)
+    val achievementViewModel = viewModel(modelClass = AchievementViewModel::class.java)
     val addTripViewModel = viewModel(modelClass = AddTripViewModel::class.java)
 
     var navigationKey by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(navigationKey) {
-        profileAchievementViewModel.refreshData()
+        profileViewModel.refreshData()
     }
 
     navController.currentBackStackEntry?.destination?.route?.hashCode()?.let {
         navigationKey = it
     }
-
-    val startDestination =
-        if (profileAchievementViewModel.username == null) {
-            Navigation.Registration.name
-        } else {
-            Navigation.Login.name
-        }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -106,13 +91,12 @@ fun TravelApp() {
             CustomTopAppBar(
                 navController = navController,
                 currentScreen = currentScreen,
-                title = currentScreen,
-                viewModel = addTripViewModel
+                title = currentScreen
             )
         }
         NavHost(
             navController = navController,
-            startDestination = startDestination,
+            startDestination = Navigation.Profile.name,
             modifier = Modifier.weight(1f)
         ) {
             composable(route = Navigation.Registration.name) {
@@ -129,7 +113,7 @@ fun TravelApp() {
             }
             composable(route = Navigation.Profile.name) {
                 Profile(
-                    viewModel = profileAchievementViewModel
+                    viewModel = profileViewModel
                 )
             }
             composable(route = Navigation.Trips.name) {
@@ -140,16 +124,18 @@ fun TravelApp() {
             }
             composable(route = Navigation.Achievements.name) {
                 Achievements(
-                    viewModel = profileAchievementViewModel
+                    viewModel = achievementViewModel
                 )
             }
             composable(route = Navigation.EditProfile.name) {
                 EditProfile(
-                    viewModel = profileAchievementViewModel
+                    navController = navController,
+                    viewModel = profileViewModel
                 )
             }
             composable(route = Navigation.AddTrip.name) {
                 AddTrip(
+                    navController = navController,
                     viewModel = addTripViewModel
                 )
             }
@@ -157,7 +143,7 @@ fun TravelApp() {
                 TripInfo()
             }
         }
-        if (currentScreen != Navigation.Login && currentScreen != Navigation.Registration) {
+        if (currentScreen != Navigation.Login && currentScreen != Navigation.Registration && currentScreen != Navigation.AddTrip && currentScreen != Navigation.EditProfile) {
             CustomBottomAppBar(
                 navController = navController,
                 currentScreen = currentScreen
@@ -171,9 +157,6 @@ fun CustomBottomAppBar(
     navController: NavController,
     currentScreen: Navigation
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isHovered by interactionSource.collectIsHoveredAsState()
-
     BottomAppBar(
         containerColor = Color.Black,
         contentColor = Color.White,
@@ -188,7 +171,6 @@ fun CustomBottomAppBar(
                 IconButton(
                     onClick = { navController.navigate(Navigation.Trips.name) },
                     modifier = Modifier
-                        .hoverable(interactionSource = interactionSource)
                         .weight(1f)
                         .fillMaxHeight()
                 ) {
@@ -275,13 +257,13 @@ fun CustomBottomAppBar(
     )
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTopAppBar(
     navController: NavController,
     currentScreen: Navigation,
-    title: Navigation,
-    viewModel: AddTripViewModel
+    title: Navigation
 ) {
     TopAppBar(
         title = {
@@ -296,7 +278,7 @@ fun CustomTopAppBar(
         actions = {
             if (currentScreen == Navigation.Trips) {
                 IconButton(
-                    onClick = { viewModel.onShowChange(true) },
+                    onClick = { navController.navigate(Navigation.AddTrip.name) },
                     modifier = Modifier.padding(top = 8.dp)
                 ) {
                     Icon(
@@ -316,8 +298,7 @@ fun CustomTopAppBar(
                         tint = Color.White
                     )
                 }
-            }
-            if (currentScreen != Navigation.Trips && currentScreen != Navigation.Profile) {
+            } else if (currentScreen == Navigation.Achievements) {
                 Text(
                     text = "107/213",
                     color = Color.White,

@@ -1,7 +1,7 @@
 package com.example.travelapp
 
 import android.app.Application
-import com.example.travelapp.graph.Graph
+import com.example.travelapp.data.graph.Graph
 
 class TravelApplication : Application(){
     override fun onCreate() {

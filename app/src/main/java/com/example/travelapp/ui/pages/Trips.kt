@@ -1,4 +1,4 @@
-package com.example.travelapp.pages
+package com.example.travelapp.ui.pages
 
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,8 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,22 +32,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.travelapp.Navigation
+import com.example.travelapp.ui.navigation.Navigation
 import com.example.travelapp.R
-import com.example.travelapp.data.TravelInfo
-import com.example.travelapp.view_models.AddTripViewModel
-import com.example.travelapp.view_models.ProfileAchievementViewModel
+import com.example.travelapp.data.database.TravelInfo
+import com.example.travelapp.data.view_models.AddTripViewModel
 
 @Composable
 fun Trips(
@@ -53,10 +51,11 @@ fun Trips(
     viewModel: AddTripViewModel,
     navController: NavController
 ) {
-    val uiState = viewModel.state
     var travelInfoList by remember { mutableStateOf<List<TravelInfo>>(emptyList()) }
+    var selectedContinent by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(key1 = viewModel) {
+
+    LaunchedEffect(viewModel) {
         travelInfoList = viewModel.getTrips()
     }
 
@@ -65,37 +64,39 @@ fun Trips(
             .background(color = Color.Black)
             .fillMaxSize()
     ) {
-        LazyColumn(
-            modifier = modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
-            item {
-                if (uiState.showDialog) {
-                    Dialog(
-                        onDismissRequest = { viewModel.onShowChange(false) }
-                    ) {
-                        AddTrip(viewModel = viewModel)
-                    }
+            ContinentDropdown(
+                selectedContinent = selectedContinent,
+                onContinentSelected = { continent ->
+                    selectedContinent = continent
                 }
-                travelInfoList.forEach { travelInfo ->
-                    TravelCard(
-                        title = travelInfo.title,
-                        continent = travelInfo.continent,
-                        country = travelInfo.country,
-                        city = travelInfo.city,
-                        startDate = travelInfo.startDate,
-                        endDate = travelInfo.endDate,
-                        mainImage = travelInfo.image,
-                        description = travelInfo.info,
-                        backgroundImage = travelInfo.country,
-                        navController = navController
-                    )
+            )
+            LazyColumn(
+                modifier = modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                items(travelInfoList.filter { it.continent == selectedContinent }) { travelInfo ->
+                        TravelCard(
+                            title = travelInfo.title,
+                            continent = travelInfo.continent,
+                            country = travelInfo.country,
+                            city = travelInfo.city,
+                            startDate = travelInfo.startDate,
+                            endDate = travelInfo.endDate,
+                            mainImage = travelInfo.image,
+                            backgroundImage = travelInfo.country,
+                            navController = navController
+                        )
+                    }
                 }
             }
         }
     }
-}
 
 @Composable
 fun TravelCard(
@@ -107,9 +108,18 @@ fun TravelCard(
     endDate: String,
     mainImage: String,
     backgroundImage: String,
-    description: String,
     navController: NavController
 ) {
+    val continentDrawable = when (continent) {
+        "Africa" -> R.drawable.africa
+        "Asia" -> R.drawable.asia
+        "Europe" -> R.drawable.europe
+        "North America" -> R.drawable.northamerica
+        "South America" -> R.drawable.southamerica
+        "Oceania" -> R.drawable.oceania
+        else -> R.drawable.empty
+    }
+
     Card(
         modifier = Modifier
             .padding(10.dp)
@@ -173,7 +183,7 @@ fun TravelCard(
                             .alpha(0.5f)
                     )
                     Image(
-                        painter = painterResource(id = R.drawable.africa),
+                        painter = painterResource(continentDrawable),
                         contentDescription = null,
                         modifier = Modifier
                             .size(60.dp)
@@ -186,17 +196,67 @@ fun TravelCard(
                     ) {
                         Text(
                             text = startDate,
-                            style = TextStyle(fontSize = 8.sp),
+                            style = TextStyle(fontSize = 20.sp),
                         )
                         Text(
                             text = endDate,
-                            style = TextStyle(fontSize = 8.sp),
+                            style = TextStyle(fontSize = 20.sp),
                             modifier = Modifier
                                 .padding(start = 4.dp),
                         )
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun ContinentDropdown(
+    selectedContinent: String?,
+    onContinentSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val continents = listOf("Africa", "Asia", "Europe", "North America", "South America", "Oceania")
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+    ) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false},
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+        ) {
+            continents.forEach { continent ->
+                DropdownMenuItem(
+                    onClick = {
+                        onContinentSelected(continent)
+                        expanded = false
+                    },
+                    text = {
+                        Text(
+                            text = continent,
+                            color = Color.Black
+                        )
+                    }
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .clickable {
+                    expanded = true
+                }
+        ) {
+            Text(
+                text = selectedContinent ?: "Select Continent",
+                modifier = Modifier.padding(8.dp),
+                color = Color.White
+            )
         }
     }
 }

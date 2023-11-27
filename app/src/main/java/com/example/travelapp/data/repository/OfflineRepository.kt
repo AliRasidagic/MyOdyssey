@@ -1,8 +1,8 @@
-package com.example.travelapp.repository
+package com.example.travelapp.data.repository
 
-import com.example.travelapp.data.DAOLayer
-import com.example.travelapp.data.LoginInfo
-import com.example.travelapp.data.TravelInfo
+import com.example.travelapp.data.dao.DAOLayer
+import com.example.travelapp.data.database.LoginInfo
+import com.example.travelapp.data.database.TravelInfo
 
 class OfflineRepository(
     private val daoLayer: DAOLayer
@@ -20,13 +20,19 @@ class OfflineRepository(
 
     override suspend fun getUsername(): String = daoLayer.getUsername()
 
-    override fun getImage(): String = daoLayer.getImage()
+    override suspend fun getPassword(): String = daoLayer.getPassword()
+
+    override suspend fun getImage(): String = daoLayer.getImage()
 
     override suspend fun getTrips(): List<TravelInfo> = daoLayer.getTrips()
 
     override suspend fun getCountries(): List<String> = daoLayer.getCountries()
 
     override suspend fun insertImage(image: String) = daoLayer.insertImage(image)
+
+    override suspend fun updateUsername(username: String) = daoLayer.updateUsername(username)
+
+    override suspend fun updatePassword(password: String) = daoLayer.updatePassword(password)
 
     override suspend fun insertUser(loginInfo: LoginInfo) = daoLayer.insertUser(loginInfo)
 

@@ -1,6 +1,8 @@
-package com.example.travelapp.pages
+package com.example.travelapp.ui.pages
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.icu.text.SimpleDateFormat
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -14,13 +16,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,29 +36,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.example.travelapp.ui.navigation.Navigation
 import com.example.travelapp.R
-import com.example.travelapp.data.TravelInfo
-import com.example.travelapp.view_models.AddTripViewModel
-import com.maxkeppeker.sheets.core.models.base.rememberSheetState
-import com.maxkeppeler.sheets.calendar.CalendarDialog
-import com.maxkeppeler.sheets.calendar.models.CalendarConfig
-import com.maxkeppeler.sheets.calendar.models.CalendarSelection
-import com.maxkeppeler.sheets.calendar.models.CalendarTimeline
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import com.example.travelapp.data.database.TravelInfo
+import com.example.travelapp.data.view_models.AddTripViewModel
+import java.util.Date
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTrip(
-    modifier: Modifier = Modifier,
-    viewModel: AddTripViewModel
+    viewModel: AddTripViewModel,
+    navController: NavController,
+    modifier: Modifier = Modifier
 ) {
     val uiState = viewModel.state
 
+    var showStartDatePicker by remember { mutableStateOf(false) }
+    var showEndDatePicker by remember { mutableStateOf(false) }
     var title by remember { mutableStateOf("") }
     var city by remember { mutableStateOf("") }
     var info by remember { mutableStateOf("") }
@@ -78,127 +77,159 @@ fun AddTrip(
 
     Box(
         modifier = Modifier
-            .width(300.dp)
-            .height(600.dp)
-            .clip(RoundedCornerShape(10.dp))
+            .fillMaxSize()
             .background(color = Color.Black)
     ) {
         Column(
-            modifier = modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.Start
         ) {
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                modifier = modifier.padding(top = 20.dp),
-                label = {
-                    Text(
-                        text = "Title",
-                        color = Color.White
-                    )
-                },
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = if (selectedImageUri == null) painterResource(R.drawable.empty) else rememberAsyncImagePainter(
+                        selectedImageUri
+                    ),
+                    contentDescription = null,
+                    modifier = modifier
+                        .padding(20.dp)
+                        .size(150.dp)
+                        .clickable {
+                            singlePhotoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                    contentScale = ContentScale.Crop
                 )
-            )
-            Image(
-                painter = if (selectedImageUri == null) painterResource(R.drawable.empty) else rememberAsyncImagePainter(
-                    selectedImageUri
-                ),
-                contentDescription = null,
-                modifier = modifier
-                    .padding(20.dp)
-                    .size(100.dp)
-                    .clickable {
-                        singlePhotoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+
+                selectedImageUri?.let {
+                    LocalContext.current.contentResolver.takePersistableUriPermission(
+                        it, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.padding(start = 20.dp)
+                ) {
+                    Button(
+                        onClick = { showStartDatePicker = true },
+                        colors = ButtonDefaults.buttonColors(Color.White)
+                    ) {
+                        Text(
+                            text = uiState.startDate,
+                            color = Color.Black
+                        )
+                    }
+                    if (showStartDatePicker) {
+                        StartDatePickerDialog(
+                            onDateSelected = { uiState.startDate = it },
+                            onDismiss = { showStartDatePicker = false }
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Button(
+                        onClick = { showEndDatePicker = true },
+                        colors = ButtonDefaults.buttonColors(Color.White)
+                    ) {
+                        Text(
+                            text = uiState.endDate,
+                            color = Color.Black
+                        )
+                    }
+                    if (showEndDatePicker) {
+                        EndDatePickerDialog(
+                            onDateSelected = { uiState.endDate = it },
+                            onDismiss = { showEndDatePicker = false }
+                        )
+                    }
+                }
+            }
+            Column(
+                modifier = modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = {
+                        Text(
+                            text = "Title",
+                            color = Color.White
                         )
                     },
-                contentScale = ContentScale.Crop
-            )
-
-            selectedImageUri?.let {
-                LocalContext.current.contentResolver.takePersistableUriPermission(
-                    it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-
-            Row {
-                StartDatePicker(viewModel)
-                Spacer(modifier = Modifier.width(10.dp))
-                EndDatePicker(viewModel)
-            }
-            Row {
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White,
+                    )
+                )
                 ContinentDropdown(viewModel)
                 CountryDropdown(uiState.selectedContinent, viewModel)
-            }
-            TextField(
-                value = city,
-                onValueChange = { city = it },
-                modifier = modifier
-                    .padding(top = 8.dp)
-                    .width(100.dp)
-                    .height(50.dp)
-                    .clip(RoundedCornerShape(20.dp)),
-                label = {
-                    Text(
-                        text = "City",
-                        color = Color.Black
+                OutlinedTextField(
+                    value = city,
+                    onValueChange = { city = it },
+                    label = {
+                        Text(
+                            text = "City",
+                            color = Color.White
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White,
                     )
-                },
-                colors = TextFieldDefaults.textFieldColors(
-                    focusedIndicatorColor = Color.Transparent,
-                    containerColor = Color.White,
-                    textColor = Color.Black
-                ),
-                singleLine = true,
-                textStyle = TextStyle(fontSize = 12.sp)
-            )
-            OutlinedTextField(
-                value = info,
-                onValueChange = { info = it },
-                modifier = modifier
-                    .padding(top = 10.dp)
-                    .height(100.dp),
-                label = {
+                )
+                OutlinedTextField(
+                    value = info,
+                    onValueChange = { info = it },
+                    label = {
+                        Text(
+                            text = "Description",
+                            color = Color.White
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White
+                    ),
+                    modifier = Modifier.height(100.dp)
+                )
+
+                val travelInfo = TravelInfo(
+                    title = title,
+                    continent = uiState.selectedContinent,
+                    country = uiState.selectedCountry,
+                    city = city,
+                    startDate = uiState.startDate,
+                    endDate = uiState.endDate,
+                    info = info,
+                    image = selectedImageUri.toString()
+                )
+
+                Button(
+                    onClick = {
+                        viewModel.addTrip(travelInfo)
+                        navController.navigate(Navigation.Trips.name)
+                        uiState.selectedContinent = "Continent"
+                        uiState.selectedCountry = "Country"
+                        uiState.startDate = "Start Date"
+                        uiState.endDate = "End Date"
+                    },
+                    colors = ButtonDefaults.buttonColors(Color.White),
+                    modifier = modifier
+                        .height(70.dp)
+                        .width(150.dp)
+                        .padding(top = 20.dp)
+                        .clip(RoundedCornerShape(20.dp)),
+                    enabled = isButtonEnabled
+                ) {
                     Text(
-                        text = "Description",
-                        color = Color.White
+                        text = "Add Trip",
+                        color = Color.Black,
+                        fontSize = 20.sp
                     )
-                },
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White
-                )
-            )
-
-            val travelInfo = TravelInfo(
-                title = title,
-                continent = uiState.selectedContinent,
-                country = uiState.selectedCountry,
-                city = city,
-                startDate = uiState.startDate,
-                endDate = uiState.endDate,
-                info = info,
-                image = selectedImageUri.toString()
-            )
-
-            Button(
-                onClick = {
-                    viewModel.addTrip(travelInfo)
-                    viewModel.onShowChange(false)
-                },
-                colors = ButtonDefaults.buttonColors(Color.White),
-                modifier = modifier
-                    .padding(top = 15.dp)
-                    .clip(RoundedCornerShape(20.dp)),
-                enabled = isButtonEnabled
-            ) {
-                Text(
-                    text = "Add Trip",
-                    color = Color.Black
-                )
+                }
             }
         }
     }
@@ -222,9 +253,6 @@ fun ContinentDropdown(
     )
 
     Box(
-        modifier = Modifier
-            .width(150.dp)
-            .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
         ExposedDropdownMenuBox(
@@ -232,7 +260,7 @@ fun ContinentDropdown(
             onExpandedChange = { expanded = it }
         ) {
             var isTextFieldClicked by remember { mutableStateOf(false) }
-            TextField(
+            OutlinedTextField(
                 value = uiState.selectedContinent,
                 onValueChange = { text ->
                     viewModel.onContinentChange(text)
@@ -240,18 +268,14 @@ fun ContinentDropdown(
                 readOnly = true,
                 modifier = Modifier
                     .menuAnchor()
-                    .height(50.dp)
-                    .clip(RoundedCornerShape(20.dp))
+                    .padding(top = 8.dp)
                     .clickable {
                         isTextFieldClicked = true
                     },
-                colors = TextFieldDefaults.textFieldColors(
-                    focusedIndicatorColor = Color.Transparent,
-                    containerColor = Color.White,
-                    textColor = Color.Black
-                ),
-                singleLine = true,
-                textStyle = TextStyle(fontSize = 12.sp)
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White
+                )
             )
             LazyColumn {
                 item {
@@ -268,7 +292,8 @@ fun ContinentDropdown(
                             DropdownMenuItem(
                                 text = {
                                     Text(
-                                        text = continents
+                                        text = continents,
+                                        color = Color.Black
                                     )
                                 },
                                 onClick = {
@@ -505,9 +530,6 @@ fun CountryDropdown(
     filteredCountries.sorted()
 
     Box(
-        modifier = Modifier
-            .width(150.dp)
-            .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
         ExposedDropdownMenuBox(
@@ -515,7 +537,7 @@ fun CountryDropdown(
             onExpandedChange = { expanded = it }
         ) {
             var isTextFieldClicked by remember { mutableStateOf(false) }
-            TextField(
+            OutlinedTextField(
                 value = uiState.selectedCountry,
                 onValueChange = { text ->
                     viewModel.onCountryChange(text)
@@ -523,18 +545,14 @@ fun CountryDropdown(
                 readOnly = true,
                 modifier = Modifier
                     .menuAnchor()
-                    .clip(RoundedCornerShape(20.dp))
-                    .height(50.dp)
+                    .padding(top = 8.dp)
                     .clickable {
                         isTextFieldClicked = true
                     },
-                colors = TextFieldDefaults.textFieldColors(
-                    focusedIndicatorColor = Color.Transparent,
-                    containerColor = Color.White,
-                    textColor = Color.Black
-                ),
-                singleLine = true,
-                textStyle = TextStyle(fontSize = 12.sp)
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White
+                )
             )
             LazyColumn {
                 item {
@@ -551,7 +569,8 @@ fun CountryDropdown(
                             DropdownMenuItem(
                                 text = {
                                     Text(
-                                        text = countries
+                                        text = countries,
+                                        color = Color.Black
                                     )
                                 },
                                 onClick = {
@@ -756,59 +775,134 @@ private fun isCountryInContinent(country: String, continent: String): Boolean {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StartDatePicker(
-    viewModel: AddTripViewModel
+fun StartDatePickerDialog(
+    onDateSelected: (String) -> Unit,
+    onDismiss: () -> Unit
 ) {
-    val uiState = viewModel.state
-    val calendarState = rememberSheetState()
+    val datePickerState = rememberDatePickerState(selectableDates = object : SelectableDates {
+        override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+            return utcTimeMillis <= System.currentTimeMillis()
+        }
+    })
 
-    CalendarDialog(
-        state = calendarState,
-        selection = CalendarSelection.Date { date ->
-            viewModel.onStartDateChange(date.toString())
+    val selectedDate = datePickerState.selectedDateMillis?.let {
+        convertMillisToDate(it)
+    } ?: ""
+
+    DatePickerDialog(
+        onDismissRequest = { onDismiss() },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onDateSelected(selectedDate)
+                    onDismiss()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White
+                )
+            ) {
+                Text(
+                    text = "OK",
+                    color = Color.Black
+                )
+            }
         },
-        config = CalendarConfig(
-            monthSelection = true,
-            yearSelection = true,
-        )
-    )
-    Button(
-        onClick = { calendarState.show() },
-        colors = ButtonDefaults.buttonColors(Color.White)
+        dismissButton = {
+            Button(
+                onClick = {
+                    onDismiss()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White
+                )
+            ) {
+                Text(
+                    text = "Cancel",
+                    color = Color.Black
+                )
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(10.dp)
     ) {
-        Text(
-            text = uiState.startDate,
-            color = Color.Black
+        DatePicker(
+            state = datePickerState,
+            colors = DatePickerDefaults.colors(
+                selectedDayContainerColor = Color.Black,
+                selectedDayContentColor = Color.White,
+                todayDateBorderColor = Color.White,
+                todayContentColor = Color.White
+            )
         )
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EndDatePicker(
-    viewModel: AddTripViewModel
+fun EndDatePickerDialog(
+    onDateSelected: (String) -> Unit,
+    onDismiss: () -> Unit
 ) {
-    val uiState = viewModel.state
-    val calendarState = rememberSheetState()
+    val datePickerState = rememberDatePickerState(selectableDates = object : SelectableDates {
+        override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+            return utcTimeMillis <= System.currentTimeMillis()
+        }
+    })
 
-    CalendarDialog(
-        state = calendarState,
-        selection = CalendarSelection.Date { date ->
-            viewModel.onEndDateChange(date.toString())
+    val selectedDate = datePickerState.selectedDateMillis?.let {
+        convertMillisToDate(it)
+    } ?: ""
+
+    DatePickerDialog(
+        onDismissRequest = { onDismiss() },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onDateSelected(selectedDate)
+                    onDismiss()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White
+                )
+            ) {
+                Text(
+                    text = "OK",
+                    color = Color.Black
+                )
+            }
         },
-        config = CalendarConfig(
-            monthSelection = true,
-            yearSelection = true,
-            disabledTimeline = CalendarTimeline.PAST
-        )
-    )
-    Button(
-        onClick = { calendarState.show() },
-        colors = ButtonDefaults.buttonColors(Color.White)
+        dismissButton = {
+            Button(
+                onClick = {
+                    onDismiss()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White
+                )
+            ) {
+                Text(
+                    text = "Cancel",
+                    color = Color.Black
+                )
+            }
+        }
     ) {
-        Text(
-            text = uiState.endDate,
-            color = Color.Black
+        DatePicker(
+            state = datePickerState,
+            colors = DatePickerDefaults.colors(
+                selectedDayContainerColor = Color.Black,
+                selectedDayContentColor = Color.White,
+                todayDateBorderColor = Color.White,
+                todayContentColor = Color.White
+            )
         )
     }
+}
+
+@SuppressLint("SimpleDateFormat")
+private fun convertMillisToDate(millis: Long): String {
+    val formatter = SimpleDateFormat("dd/MM/yyyy")
+    return formatter.format(Date(millis))
 }

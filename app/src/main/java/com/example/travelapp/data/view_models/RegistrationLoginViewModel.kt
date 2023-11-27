@@ -1,13 +1,13 @@
-package com.example.travelapp.view_models
+package com.example.travelapp.data.view_models
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.travelapp.data.LoginInfo
-import com.example.travelapp.graph.Graph
-import com.example.travelapp.repository.OfflineRepository
+import com.example.travelapp.data.database.LoginInfo
+import com.example.travelapp.data.graph.Graph
+import com.example.travelapp.data.repository.OfflineRepository
 import kotlinx.coroutines.launch
 
 class RegistrationLoginViewModel(
@@ -15,7 +15,6 @@ class RegistrationLoginViewModel(
 ) : ViewModel() {
 
     var state by mutableStateOf(RegistrationLoginUiState())
-        private set
 
     fun onNameChange(newName: String){
         state = state.copy(username = newName)
